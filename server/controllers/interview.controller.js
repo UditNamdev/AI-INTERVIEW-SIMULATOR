@@ -3,7 +3,57 @@ import { generateQuestionsFromAI, evaluateAnswersWithAI } from '../services/gemi
 import Interview from '../models/Interview.model.js'; // <-- IMPORT MODEL
 
 // ... (keep handleGenerateQuestions exact same) ...
+/**
+ * @desc    Generate interview questions
+ * @route   POST /api/interview/generate-questions
+ */
+export const handleGenerateQuestions = async (req, res, next) => {
+  try {
+    const { role, difficulty } = req.body;
 
+    // Validation
+    if (!role || !difficulty) {
+      const error = new Error(
+        'Validation Error: "role" and "difficulty" are required.'
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const validRoles = [
+      'Frontend Developer',
+      'Backend Developer',
+      'Full Stack Developer'
+    ];
+
+    const validDifficulties = [
+      'Easy',
+      'Medium',
+      'Hard'
+    ];
+
+    if (
+      !validRoles.includes(role) ||
+      !validDifficulties.includes(difficulty)
+    ) {
+      const error = new Error(
+        'Validation Error: Invalid role or difficulty.'
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Generate questions using Gemini
+    const aiData = await generateQuestionsFromAI(role, difficulty);
+
+    return res.status(200).json({
+      success: true,
+      data: aiData.questions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const handleEvaluateAnswers = async (req, res, next) => {
   try {
     const { role, difficulty, answers } = req.body;
